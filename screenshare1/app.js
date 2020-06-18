@@ -58,18 +58,8 @@ $(function() {
     step1();
   });
 
-  // Start screenshare
   $('#start-screen').on('click', () => {
-    if (ss.isScreenShareAvailable() === false) {
-      alert('Screen Share cannot be used. Please install the Chrome extension.');
-      return;
-    }
-
-    ss.start({
-      width:     $('#Width').val(),
-      height:    $('#Height').val(),
-      frameRate: $('#FrameRate').val(),
-    })
+    navigator.mediaDevices.getDisplayMedia({audio: true, video: true})
       .then(stream => {
         $('#my-video')[0].srcObject = stream;
 
