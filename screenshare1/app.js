@@ -20,7 +20,7 @@ $(function() {
     const peer = new Peer({key: APIKEY, debug: 3});
 
     // Prepare screen share object
-    const ss = ScreenShare.create({debug: true});
+    //const ss = ScreenShare.create({debug: true});
 
     // Get peer id from server
     peer.on('open', () => {
@@ -78,7 +78,7 @@ $(function() {
 
   // End screenshare
   $('#stop-screen').on('click', () => {
-    ss.stop();
+    //ss.stop();
     localStream.getTracks().forEach(track => track.stop());
   });
 
