@@ -88,7 +88,8 @@ $(function() {
 		audio: true,
 		video: {
 			width:		$('#Width').val(),
-			height:		$('#Height').val()
+			height:		$('#Height').val(),
+			frameRate:	$('#FrameRate').val()
 		}
 	})
       .then(stream => {
