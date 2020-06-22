@@ -84,7 +84,13 @@ $(function() {
 
   // Camera
   $('#start-camera').on('click', () => {
-    navigator.mediaDevices.getUserMedia({audio: true, video: true})
+    navigator.mediaDevices.getUserMedia({
+		audio: true,
+		video: {
+			width:		$('#Width').val(),
+			height:		$('#Height').val()
+		}
+	})
       .then(stream => {
         $('#my-video')[0].srcObject = stream;
 
