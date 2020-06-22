@@ -59,7 +59,14 @@ $(function() {
   });
 
   $('#start-screen').on('click', () => {
-    navigator.mediaDevices.getDisplayMedia({audio: true, video: true})
+    navigator.mediaDevices.getDisplayMedia({
+		audio: true,
+		video: {
+			width:		$('#Width').val(),
+			height:		$('#Height').val(),
+			frameRate:	$('#FrameRate').val()
+		}
+	})
       .then(stream => {
         $('#my-video')[0].srcObject = stream;
 
@@ -84,14 +91,7 @@ $(function() {
 
   // Camera
   $('#start-camera').on('click', () => {
-    navigator.mediaDevices.getUserMedia({
-		audio: true,
-		video: {
-			width:		$('#Width').val(),
-			height:		$('#Height').val(),
-			frameRate:	$('#FrameRate').val()
-		}
-	})
+    navigator.mediaDevices.getUserMedia({audio: true, video: true})
       .then(stream => {
         $('#my-video')[0].srcObject = stream;
 
