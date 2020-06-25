@@ -46,10 +46,10 @@ const Peer = window.Peer;
         debug: 3,
     });
 
-    const displayPeer = (window.displayPeer = new Peer({
+    const displayPeer = new Peer({
             key: APIKEY,
             debug: 3,
-        }));
+        });
 
     // Register join handler
     joinTrigger.addEventListener('click', () => {
@@ -126,9 +126,13 @@ const Peer = window.Peer;
         }
 
         /*** displayRoom ***/
+		
+		const dummy = document.createElement('canvas');
+		const dummyStream = dummy.captureStream(10);
 
-        const displayRoom = peer.joinRoom(roomId.value + "display", {
+        const displayRoom = displayPeer.joinRoom(roomId.value + "display", {
             mode: getRoomModeByHash(),
+			stream: dummyStream,
         });
 
         displayRoom.once('open', () => {
@@ -140,16 +144,16 @@ const Peer = window.Peer;
                 audio: true,
                 video: true,
             }).catch(console.error);
+			
+			displayRoom.replaceStream(sharescreenStream);
 
             sharescreenVideo.muted = true;
             sharescreenVideo.srcObject = sharescreenStream;
             sharescreenVideo.playsInline = true;
             await sharescreenVideo.play().catch(console.error);
-			
-			displayRoom.replaceStream(sharescreenStream);
         });
 
-        room.on('peerJoin', peerId => {
+        displayRoom.on('peerJoin', peerId => {
             messages.textContent += `=== ${peerId} joined the displayRoom ===\n`;
         });
 
