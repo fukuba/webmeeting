@@ -47,9 +47,9 @@ const Peer = window.Peer;
     });
 
     const displayPeer = new Peer({
-            key: APIKEY,
-            debug: 3,
-        });
+        key: APIKEY,
+        debug: 3,
+    });
 
     // Register join handler
     joinTrigger.addEventListener('click', () => {
@@ -74,6 +74,7 @@ const Peer = window.Peer;
 
         // Render remote stream for new peer join in the room
         room.on('stream', async stream => {
+            messages.textContent += `=== The stream ${stream.peerId} in userRoom is fired ===\n`;
             const newVideo = document.createElement('video');
             newVideo.srcObject = stream;
             newVideo.playsInline = true;
@@ -126,26 +127,28 @@ const Peer = window.Peer;
         }
 
         /*** displayRoom ***/
-		
-		const dummy = document.createElement('canvas');
-		const dummyStream = dummy.captureStream(10);
+
+        const dummy = document.createElement('canvas');
+        const dummyStream = dummy.captureStream(10);
 
         const displayRoom = displayPeer.joinRoom(roomId.value + "display", {
             mode: getRoomModeByHash(),
-			stream: dummyStream,
+            stream: dummyStream,
         });
 
         displayRoom.once('open', () => {
             messages.textContent += '=== You joined the displayRoom ===\n';
         });
-		
+
         sharescreenTrigger.addEventListener('click', async() => {
+            messages.textContent += `=== The share screen button is clicked ===\n`;
+
             const sharescreenStream = await navigator.mediaDevices.getDisplayMedia({
                 audio: true,
                 video: true,
             }).catch(console.error);
-			
-			displayRoom.replaceStream(sharescreenStream);
+
+            displayRoom.replaceStream(sharescreenStream);
 
             sharescreenVideo.muted = true;
             sharescreenVideo.srcObject = sharescreenStream;
@@ -159,10 +162,12 @@ const Peer = window.Peer;
 
         // Render remote stream for new peer join in the room
         displayRoom.on('stream', async stream => {
+            messages.textContent += `=== The stream ${stream.peerId} in displayRoom is fired ===\n`;
             if (sharescreenVideo.srcObject != null) {
                 sharescreenVideo.srcObject.getTracks().forEach(track => track.stop());
                 sharescreenVideo.srcObject = null;
             }
+		
             sharescreenVideo.muted = true;
             sharescreenVideo.srcObject = stream;
             sharescreenVideo.playsInline = true;
