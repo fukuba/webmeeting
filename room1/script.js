@@ -46,11 +46,6 @@ const Peer = window.Peer;
         debug: 3,
     });
 
-    const displayPeer = new Peer({
-        key: APIKEY,
-        debug: 3,
-    });
-
     // Register join handler
     joinTrigger.addEventListener('click', () => {
         // Note that you need to ensure the peer has connected to signaling server
@@ -65,22 +60,22 @@ const Peer = window.Peer;
         });
 
         userRoom.once('open', () => {
-			let msg = '[userRoom open] You joined the userRoom';
-			messages.textContent += (msg + "\n"); 
-			console.log(msg);
+            const msg = '[userRoom open] You joined the userRoom';
+            messages.textContent += (msg + "\n");
+            console.log(msg);
         });
 
         userRoom.on('peerJoin', peerId => {
-			let msg = `[userRoom peerJoin] peerId: ${peerId}`;
-			messages.textContent += (msg + "\n"); 
-			console.log(msg);
+            const msg = `[userRoom peerJoin] peerId: ${peerId}`;
+            messages.textContent += (msg + "\n");
+            console.log(msg);
         });
 
         // Render remote stream for new peer join in the room
         userRoom.on('stream', async stream => {
-			let msg = `[userRoom stream] stream.peerId: ${stream.peerId}`;
-			messages.textContent += (msg + "\n"); 
-			console.log(msg);
+            const msg = `[userRoom stream] stream.peerId: ${stream.peerId}`;
+            messages.textContent += (msg + "\n");
+            console.log(msg);
             const newVideo = document.createElement('video');
             newVideo.srcObject = stream;
             newVideo.playsInline = true;
@@ -95,9 +90,9 @@ const Peer = window.Peer;
                 src
             }) => {
             // Show a message sent to the room and who sent
-			let msg = `[userRoom data] ${src}: ${data}`;
-			messages.textContent += (msg + "\n"); 
-			console.log(msg);
+            const msg = `[userRoom data] ${src}: ${data}`;
+            messages.textContent += (msg + "\n");
+            console.log(msg);
         });
 
         // for closing room members
@@ -107,17 +102,17 @@ const Peer = window.Peer;
             remoteVideo.srcObject = null;
             remoteVideo.remove();
 
-			let msg = `[userRoom peerLeave] peerId: ${peerId}`;
-			messages.textContent += (msg + "\n"); 
-			console.log(msg);
+            const msg = `[userRoom peerLeave] peerId: ${peerId}`;
+            messages.textContent += (msg + "\n");
+            console.log(msg);
         });
 
         // for closing myself
         userRoom.once('close', () => {
             sendTrigger.removeEventListener('click', onClickSend);
-			let msg = '[userRoom close]';
-			messages.textContent += (msg + "\n"); 
-			console.log(msg);
+            const msg = '[userRoom close]';
+            messages.textContent += (msg + "\n");
+            console.log(msg);
             Array.from(remoteVideos.children).forEach(remoteVideo => {
                 remoteVideo.srcObject.getTracks().forEach(track => track.stop());
                 remoteVideo.srcObject = null;
@@ -133,62 +128,73 @@ const Peer = window.Peer;
         function onClickSend() {
             // Send message to all of the peers in the room via websocket
             userRoom.send(localText.value);
-			let msg = `[sendTrigger click] ${peer.id}: ${localText.value}`;
-			messages.textContent += (msg + "\n"); 
-			console.log(msg);
+            const msg = `[sendTrigger click] ${peer.id}: ${localText.value}`;
+            messages.textContent += (msg + "\n");
+            console.log(msg);
             localText.value = '';
         }
 
         /*** displayRoom ***/
 
         const dummy = document.createElement('canvas');
-        const dummyStream = dummy.captureStream(10);
+        let dummyStream = null;
 
-        const displayRoom = peer.joinRoom(roomId.value + "display", {
+        if ((dummyStream == null) || (!dummyStream.active)) {
+            dummyStream = dummy.captureStream(10);
+        }
+
+        let displayRoom = peer.joinRoom(roomId.value + "display", {
             mode: getRoomModeByHash(),
             stream: dummyStream,
         });
 
         sharescreenTrigger.addEventListener('click', async() => {
+			displayRoom.close();
+			
             const sharescreenStream = await navigator.mediaDevices.getDisplayMedia({
                 audio: true,
                 video: true,
             }).catch(console.error);
-			
+
             sharescreenVideo.muted = true;
             sharescreenVideo.srcObject = sharescreenStream;
             sharescreenVideo.playsInline = true;
             await sharescreenVideo.play().catch(console.error);
-			
-			displayRoom.replaceStream(sharescreenStream);
-			
-			let msg = `[sharescreenTrigger click] sharescreenStream.peerId: ${sharescreenStream.peerId}`;
-			messages.textContent += (msg + "\n"); 
-			console.log(msg);
+
+            // displayRoom.replaceStream(sharescreenStream);
+
+            displayRoom = peer.joinRoom(roomId.value + "display", {
+                mode: getRoomModeByHash(),
+                stream: sharescreenStream,
+            });
+
+            const msg = `[sharescreenTrigger click] sharescreenStream.peerId: ${sharescreenStream.peerId}`;
+            messages.textContent += (msg + "\n");
+            console.log(msg);
         });
-		
-	    displayRoom.once('open', () => {
-			let msg = '[displayRoom open] You joined the displayRoom';
-			messages.textContent += (msg + "\n"); 
-			console.log(msg);
-        });	
+
+        displayRoom.on('open', () => {
+            const msg = '[displayRoom open] You joined the displayRoom';
+            messages.textContent += (msg + "\n");
+            console.log(msg);
+        });
 
         displayRoom.on('peerJoin', peerId => {
-			let msg = `[displayRoom peerJoin] peerId: ${peerId}`;
-			messages.textContent += (msg + "\n"); 
-			console.log(msg);
+            const msg = `[displayRoom peerJoin] peerId: ${peerId}`;
+            messages.textContent += (msg + "\n");
+            console.log(msg);
         });
 
         // Render remote stream for new peer join in the room
         displayRoom.on('stream', async stream => {
-			let msg = `[displayRoom stream] stream.peerId: ${stream.peerId}`;
-			messages.textContent += (msg + "\n"); 
-			console.log(msg);
+            const msg = `[displayRoom stream] stream.peerId: ${stream.peerId}`;
+            messages.textContent += (msg + "\n");
+            console.log(msg);
             if (sharescreenVideo.srcObject != null) {
                 sharescreenVideo.srcObject.getTracks().forEach(track => track.stop());
                 sharescreenVideo.srcObject = null;
             }
-		
+
             sharescreenVideo.muted = true;
             sharescreenVideo.srcObject = stream;
             sharescreenVideo.playsInline = true;
@@ -198,13 +204,23 @@ const Peer = window.Peer;
 
         // for closing room members
         displayRoom.on('peerLeave', peerId => {
-			let msg = `=== displayRoom peerLeave: peerId = ${peerId} ===`;
-			messages.textContent += (msg + "\n"); 
-			console.log(msg);
+            const msg = `[displayRoom peerLeave]: peerId = ${peerId}`;
+            messages.textContent += (msg + "\n");
+            console.log(msg);
             if (sharescreenVideo.getAttribute('data-peer-id') == peerId) {
                 sharescreenVideo.srcObject.getTracks().forEach(track => track.stop());
                 sharescreenVideo.srcObject = null;
             }
+        });
+
+        // for closing myself
+        displayRoom.on('close', () => {
+            const msg = '[displayRoom close]';
+            messages.textContent += (msg + "\n");
+            console.log(msg);
+
+            sharescreenVideo.srcObject.getTracks().forEach(track => track.stop());
+            sharescreenVideo.srcObject = null;
         });
 
     });
