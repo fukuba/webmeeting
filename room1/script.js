@@ -126,7 +126,7 @@ const Peer = window.Peer;
         });
 
         sendTrigger.addEventListener('click', onClickSend);
-        leaveTrigger.addEventListener('click', () => room.close(), {
+        leaveTrigger.addEventListener('click', () => userRoom.close(), {
             once: true
         });
 
