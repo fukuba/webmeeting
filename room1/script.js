@@ -59,22 +59,28 @@ const Peer = window.Peer;
             return;
         }
 
-        const room = peer.joinRoom(roomId.value + "user", {
+        const userRoom = peer.joinRoom(roomId.value + "user", {
             mode: getRoomModeByHash(),
             stream: localStream,
         });
 
-        room.once('open', () => {
-            messages.textContent += '=== You joined the userRoom ===\n';
+        userRoom.once('open', () => {
+			let msg = '[userRoom open] You joined the userRoom';
+			messages.textContent += (msg + "\n"); 
+			console.log(msg);
         });
 
-        room.on('peerJoin', peerId => {
-            messages.textContent += `=== ${peerId} joined the userRoom ===\n`;
+        userRoom.on('peerJoin', peerId => {
+			let msg = `[userRoom peerJoin] peerId: ${peerId}`;
+			messages.textContent += (msg + "\n"); 
+			console.log(msg);
         });
 
         // Render remote stream for new peer join in the room
-        room.on('stream', async stream => {
-            messages.textContent += `=== The stream ${stream.peerId} in userRoom is fired ===\n`;
+        userRoom.on('stream', async stream => {
+			let msg = `[userRoom stream] stream.peerId: ${stream.peerId}`;
+			messages.textContent += (msg + "\n"); 
+			console.log(msg);
             const newVideo = document.createElement('video');
             newVideo.srcObject = stream;
             newVideo.playsInline = true;
@@ -84,28 +90,34 @@ const Peer = window.Peer;
             await newVideo.play().catch(console.error);
         });
 
-        room.on('data', ({
+        userRoom.on('data', ({
                 data,
                 src
             }) => {
             // Show a message sent to the room and who sent
-            messages.textContent += `${src}: ${data}\n`;
+			let msg = `[userRoom data] ${src}: ${data}`;
+			messages.textContent += (msg + "\n"); 
+			console.log(msg);
         });
 
         // for closing room members
-        room.on('peerLeave', peerId => {
+        userRoom.on('peerLeave', peerId => {
             const remoteVideo = remoteVideos.querySelector(`[data-peer-id=${peerId}]`);
             remoteVideo.srcObject.getTracks().forEach(track => track.stop());
             remoteVideo.srcObject = null;
             remoteVideo.remove();
 
-            messages.textContent += `=== ${peerId} left ===\n`;
+			let msg = `[userRoom peerLeave] peerId: ${peerId}`;
+			messages.textContent += (msg + "\n"); 
+			console.log(msg);
         });
 
         // for closing myself
-        room.once('close', () => {
+        userRoom.once('close', () => {
             sendTrigger.removeEventListener('click', onClickSend);
-            messages.textContent += '== You left ===\n';
+			let msg = '[userRoom close]';
+			messages.textContent += (msg + "\n"); 
+			console.log(msg);
             Array.from(remoteVideos.children).forEach(remoteVideo => {
                 remoteVideo.srcObject.getTracks().forEach(track => track.stop());
                 remoteVideo.srcObject = null;
@@ -120,9 +132,10 @@ const Peer = window.Peer;
 
         function onClickSend() {
             // Send message to all of the peers in the room via websocket
-            room.send(localText.value);
-
-            messages.textContent += `${peer.id}: ${localText.value}\n`;
+            userRoom.send(localText.value);
+			let msg = `[sendTrigger click] ${peer.id}: ${localText.value}`;
+			messages.textContent += (msg + "\n"); 
+			console.log(msg);
             localText.value = '';
         }
 
@@ -131,38 +144,46 @@ const Peer = window.Peer;
         const dummy = document.createElement('canvas');
         const dummyStream = dummy.captureStream(10);
 
-        const displayRoom = displayPeer.joinRoom(roomId.value + "display", {
+        const displayRoom = peer.joinRoom(roomId.value + "display", {
             mode: getRoomModeByHash(),
             stream: dummyStream,
         });
 
-        displayRoom.once('open', () => {
-            messages.textContent += '=== You joined the displayRoom ===\n';
-        });
-
         sharescreenTrigger.addEventListener('click', async() => {
-            messages.textContent += `=== The share screen button is clicked ===\n`;
-
             const sharescreenStream = await navigator.mediaDevices.getDisplayMedia({
                 audio: true,
                 video: true,
             }).catch(console.error);
-
-            displayRoom.replaceStream(sharescreenStream);
-
+			
             sharescreenVideo.muted = true;
             sharescreenVideo.srcObject = sharescreenStream;
             sharescreenVideo.playsInline = true;
             await sharescreenVideo.play().catch(console.error);
+			
+			displayRoom.replaceStream(sharescreenStream);
+			
+			let msg = `[sharescreenTrigger click] sharescreenStream.peerId: ${sharescreenStream.peerId}`;
+			messages.textContent += (msg + "\n"); 
+			console.log(msg);
         });
+		
+	    displayRoom.once('open', () => {
+			let msg = '[displayRoom open] You joined the displayRoom';
+			messages.textContent += (msg + "\n"); 
+			console.log(msg);
+        });	
 
         displayRoom.on('peerJoin', peerId => {
-            messages.textContent += `=== ${peerId} joined the displayRoom ===\n`;
+			let msg = `[displayRoom peerJoin] peerId: ${peerId}`;
+			messages.textContent += (msg + "\n"); 
+			console.log(msg);
         });
 
         // Render remote stream for new peer join in the room
         displayRoom.on('stream', async stream => {
-            messages.textContent += `=== The stream ${stream.peerId} in displayRoom is fired ===\n`;
+			let msg = `[displayRoom stream] stream.peerId: ${stream.peerId}`;
+			messages.textContent += (msg + "\n"); 
+			console.log(msg);
             if (sharescreenVideo.srcObject != null) {
                 sharescreenVideo.srcObject.getTracks().forEach(track => track.stop());
                 sharescreenVideo.srcObject = null;
@@ -177,6 +198,9 @@ const Peer = window.Peer;
 
         // for closing room members
         displayRoom.on('peerLeave', peerId => {
+			let msg = `=== displayRoom peerLeave: peerId = ${peerId} ===`;
+			messages.textContent += (msg + "\n"); 
+			console.log(msg);
             if (sharescreenVideo.getAttribute('data-peer-id') == peerId) {
                 sharescreenVideo.srcObject.getTracks().forEach(track => track.stop());
                 sharescreenVideo.srcObject = null;
