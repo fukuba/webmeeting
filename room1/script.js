@@ -134,7 +134,7 @@ const Peer = window.Peer;
             localText.value = '';
         }
 
-        /*** displayRoom ***/
+        /*** screenRoom: 画面用のRoom ***/
 
         const dummy = document.createElement('canvas');
         let dummyStream = null;
@@ -143,15 +143,19 @@ const Peer = window.Peer;
             dummyStream = dummy.captureStream(10);
         }
 
-        let displayRoom = peer.joinRoom(roomId.value + "display", {
+        let screenRoom = peer.joinRoom(roomId.value + "display", {
             mode: getRoomModeByHash(),
             stream: dummyStream,
         });
+		
+		let sharescreenStream = null;
 
         sharescreenTrigger.addEventListener('click', async() => {
-			displayRoom.close();
+			if (sharescreenStream != null) {
+				sharescreenStream.getTracks().forEach(track => track.stop());
+			}
 			
-            const sharescreenStream = await navigator.mediaDevices.getDisplayMedia({
+            sharescreenStream = await navigator.mediaDevices.getDisplayMedia({
                 audio: true,
                 video: true,
             }).catch(console.error);
@@ -161,50 +165,54 @@ const Peer = window.Peer;
             sharescreenVideo.playsInline = true;
             await sharescreenVideo.play().catch(console.error);
 
-            // displayRoom.replaceStream(sharescreenStream);
+            screenRoom.replaceStream(sharescreenStream);
 
-            displayRoom = peer.joinRoom(roomId.value + "display", {
+			/*
+            screenRoom = peer.joinRoom(roomId.value + "display", {
                 mode: getRoomModeByHash(),
                 stream: sharescreenStream,
             });
+			*/
 
             const msg = `[sharescreenTrigger click] sharescreenStream.peerId: ${sharescreenStream.peerId}`;
             messages.textContent += (msg + "\n");
             console.log(msg);
         });
 
-        displayRoom.on('open', () => {
-            const msg = '[displayRoom open] You joined the displayRoom';
+        screenRoom.on('open', () => {
+            const msg = '[screenRoom open] You joined the screenRoom';
             messages.textContent += (msg + "\n");
             console.log(msg);
         });
 
-        displayRoom.on('peerJoin', peerId => {
-            const msg = `[displayRoom peerJoin] peerId: ${peerId}`;
+        screenRoom.on('peerJoin', peerId => {
+            const msg = `[screenRoom peerJoin] peerId: ${peerId}`;
             messages.textContent += (msg + "\n");
             console.log(msg);
         });
 
         // Render remote stream for new peer join in the room
-        displayRoom.on('stream', async stream => {
-            const msg = `[displayRoom stream] stream.peerId: ${stream.peerId}`;
+        screenRoom.on('stream', async stream => {
+            const msg = `[screenRoom stream] stream.peerId: ${stream.peerId}`;
             messages.textContent += (msg + "\n");
             console.log(msg);
-            if (sharescreenVideo.srcObject != null) {
-                sharescreenVideo.srcObject.getTracks().forEach(track => track.stop());
-                sharescreenVideo.srcObject = null;
-            }
+			
+			if (sharescreenStream != null) {
+				sharescreenStream.getTracks().forEach(track => track.stop());
+			}
+			
+			sharescreenStream = stream;
 
             sharescreenVideo.muted = true;
-            sharescreenVideo.srcObject = stream;
+            sharescreenVideo.srcObject = sharescreenStream;
             sharescreenVideo.playsInline = true;
             sharescreenVideo.setAttribute('data-peer-id', stream.peerId);
             await sharescreenVideo.play().catch(console.error);
         });
 
         // for closing room members
-        displayRoom.on('peerLeave', peerId => {
-            const msg = `[displayRoom peerLeave]: peerId = ${peerId}`;
+        screenRoom.on('peerLeave', peerId => {
+            const msg = `[screenRoom peerLeave]: peerId = ${peerId}`;
             messages.textContent += (msg + "\n");
             console.log(msg);
             if (sharescreenVideo.getAttribute('data-peer-id') == peerId) {
@@ -214,8 +222,8 @@ const Peer = window.Peer;
         });
 
         // for closing myself
-        displayRoom.on('close', () => {
-            const msg = '[displayRoom close]';
+        screenRoom.on('close', () => {
+            const msg = '[screenRoom close]';
             messages.textContent += (msg + "\n");
             console.log(msg);
 
