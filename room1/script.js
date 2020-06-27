@@ -147,32 +147,39 @@ const Peer = window.Peer;
             mode: getRoomModeByHash(),
             stream: dummyStream,
         });
-		
-		let sharescreenStream = null;
+
+        let sharescreenStream = null;
 
         sharescreenTrigger.addEventListener('click', async() => {
-			if (sharescreenStream != null) {
-				sharescreenStream.getTracks().forEach(track => track.stop());
-			}
-			
-            sharescreenStream = await navigator.mediaDevices.getDisplayMedia({
+
+            let isSelf = false;
+            if (sharescreenStream != null) {
+                if (sharescreenStream.getAttribute('data-peer-id') == null) {
+                    isSelf = true;
+                }
+            }
+
+            sharescreenStream0 = await navigator.mediaDevices.getDisplayMedia({
                 audio: true,
                 video: true,
             }).catch(console.error);
 
             sharescreenVideo.muted = true;
-            sharescreenVideo.srcObject = sharescreenStream;
+            sharescreenVideo.srcObject = sharescreenStream0;
             sharescreenVideo.playsInline = true;
+            sharescreenVideo.removeAttribute('data-peer-id');
             await sharescreenVideo.play().catch(console.error);
 
-            screenRoom.replaceStream(sharescreenStream);
-
-			/*
-            screenRoom = peer.joinRoom(roomId.value + "display", {
-                mode: getRoomModeByHash(),
-                stream: sharescreenStream,
-            });
-			*/
+            if (isSelf) {
+                screenRoom.replaceStream(sharescreenStream);
+            } else {
+				screenRoom.close();
+				sharescreenStream = sharescreenStream0;
+                screenRoom = peer.joinRoom(roomId.value + "display", {
+                    mode: getRoomModeByHash(),
+                    stream: sharescreenStream,
+                });
+            }
 
             const msg = `[sharescreenTrigger click] sharescreenStream.peerId: ${sharescreenStream.peerId}`;
             messages.textContent += (msg + "\n");
@@ -196,12 +203,12 @@ const Peer = window.Peer;
             const msg = `[screenRoom stream] stream.peerId: ${stream.peerId}`;
             messages.textContent += (msg + "\n");
             console.log(msg);
-			
-			if (sharescreenStream != null) {
-				sharescreenStream.getTracks().forEach(track => track.stop());
-			}
-			
-			sharescreenStream = stream;
+
+            if (sharescreenStream != null) {
+                sharescreenStream.getTracks().forEach(track => track.stop());
+            }
+
+            sharescreenStream = stream;
 
             sharescreenVideo.muted = true;
             sharescreenVideo.srcObject = sharescreenStream;
