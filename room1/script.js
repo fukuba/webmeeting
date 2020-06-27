@@ -164,11 +164,11 @@ const Peer = window.Peer;
             }).catch(console.error);
 
             sharescreenVideo.muted = true;
-            sharescreenVideo.srcObject = sharescreenStream0;
+            sharescreenVideo.srcObject = sharescreenStream;
             sharescreenVideo.playsInline = true;
             sharescreenVideo.removeAttribute('data-peer-id');
             await sharescreenVideo.play().catch(console.error);
-			
+
             if (isSelf) {
                 screenRoom.replaceStream(sharescreenStream);
             } else {
