@@ -152,11 +152,10 @@ const Peer = window.Peer;
 
         sharescreenTrigger.addEventListener('click', async() => {
 
-            let isSelf = false;
-            if (sharescreenStream != null) {
-                if (sharescreenStream.getAttribute('data-peer-id') == null) {
-                    isSelf = true;
-                }
+            let isSelf = true;
+
+            if (sharescreenVideo.hasAttribute('data-peer-id')) {
+                isSelf = false;
             }
 
             sharescreenStream0 = await navigator.mediaDevices.getDisplayMedia({
@@ -173,8 +172,8 @@ const Peer = window.Peer;
             if (isSelf) {
                 screenRoom.replaceStream(sharescreenStream);
             } else {
-				screenRoom.close();
-				sharescreenStream = sharescreenStream0;
+                screenRoom.close();
+                sharescreenStream = sharescreenStream0;
                 screenRoom = peer.joinRoom(roomId.value + "display", {
                     mode: getRoomModeByHash(),
                     stream: sharescreenStream,
