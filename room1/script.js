@@ -158,7 +158,7 @@ const Peer = window.Peer;
                 isSelf = false;
             }
 
-            sharescreenStream0 = await navigator.mediaDevices.getDisplayMedia({
+            sharescreenStream = await navigator.mediaDevices.getDisplayMedia({
                 audio: true,
                 video: true,
             }).catch(console.error);
@@ -168,12 +168,11 @@ const Peer = window.Peer;
             sharescreenVideo.playsInline = true;
             sharescreenVideo.removeAttribute('data-peer-id');
             await sharescreenVideo.play().catch(console.error);
-
+			
             if (isSelf) {
                 screenRoom.replaceStream(sharescreenStream);
             } else {
                 screenRoom.close();
-                sharescreenStream = sharescreenStream0;
                 screenRoom = peer.joinRoom(roomId.value + "display", {
                     mode: getRoomModeByHash(),
                     stream: sharescreenStream,
